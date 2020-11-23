@@ -1,0 +1,53 @@
+version: '3.4'
+
+services:
+  lineten_adapters_inbevtex.api:
+    image: ${DOCKER_REGISTRY-}lineten_adapters_inbevtex.api
+    build:
+      context: src
+      dockerfile: lineten_adapters_inbevtex.Api/Dockerfile
+    depends_on:
+      - mysql-db
+      # - rabbitmq
+    environment:
+      DbOptions__DbServer: mysql-db
+      DbOptions__DbUsername: root
+      DbOptions__DbPassword: rootpassword
+      DbOptions__DbDatabase: lineten_adapters_inbevtex
+      # RabbitMQOptions__HostName: rabbitmq
+      # RabbitMQOptions__UserName: user
+      # RabbitMQOptions__Password: password
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ~/.vsdbg:/remote_debugger:rw
+    networks:
+      - lineten_adapters_inbevtex.api-net
+  mysql-db:
+    image: mariadb:latest
+    restart: unless-stopped
+    volumes:
+      - lineten_adapters_inbevtex.api-vol:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+    networks:
+      - lineten_adapters_inbevtex.api-net
+  # rabbitmq:
+  #   environment:
+  #     - RABBITMQ_DEFAULT_USER=user
+  #     - RABBITMQ_DEFAULT_PASS=password
+  #   image: rabbitmq:3-management
+  #   ports:
+  #     - 5672:5672
+  #     - 15672:15672
+  #   networks:
+  #     - lineten_adapters_inbevtex.api-net
+volumes:
+  lineten_adapters_inbevtex.api-vol:
+    name: lineten_adapters_inbevtex.api-vol
+networks:
+  lineten_adapters_inbevtex.api-net:
+    driver: bridge
